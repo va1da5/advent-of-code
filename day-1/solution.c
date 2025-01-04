@@ -1,25 +1,24 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Vector {
+typedef struct Vector_s {
   int capacity;
   int index;
   int *array;
-  void (*append)(struct Vector *self, int item);
-  void (*expand)(struct Vector *self);
-  void (*sort)(struct Vector *self);
-  int (*countSorted)(struct Vector *self, int needle);
-} Vector;
+  void (*append)(struct Vector_s *self, int item);
+  void (*expand)(struct Vector_s *self);
+  void (*sort)(struct Vector_s *self);
+  int (*count_sorted)(struct Vector_s *self, int needle);
+} Vector_t;
 
-int comp(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
+int compare(const void *a, const void *b) { return (*(int *)a - *(int *)b); }
 
-void sort(Vector *self) {
-  qsort(self->array, self->index, sizeof(self->array[0]), comp);
+void sort(Vector_t *self) {
+  qsort(self->array, self->index, sizeof(self->array[0]), compare);
 }
 
-int countSorted(Vector *self, int needle) {
+int count_sorted(Vector_t *self, int needle) {
   int count = 0;
 
   for (int i = 0; i < self->index; i++) {
@@ -35,7 +34,7 @@ int countSorted(Vector *self, int needle) {
   return count;
 }
 
-void expand(Vector *self) {
+void expand(Vector_t *self) {
   int newSize = self->capacity * 2;
   int *newArray = (int *)malloc(newSize * sizeof(int));
 
@@ -57,7 +56,7 @@ void expand(Vector *self) {
   self->capacity = newSize;
 }
 
-void append(Vector *self, int item) {
+void append(Vector_t *self, int item) {
   if (self->index >= self->capacity) {
     self->expand(self);
   }
@@ -66,8 +65,8 @@ void append(Vector *self, int item) {
   return;
 }
 
-Vector makeVector(int initialCapacity) {
-  Vector vector;
+Vector_t makeVector(int initialCapacity) {
+  Vector_t vector;
   vector.capacity = initialCapacity;
   vector.index = 0;
   vector.array = (int *)malloc(vector.capacity * sizeof(int));
@@ -83,12 +82,12 @@ Vector makeVector(int initialCapacity) {
   vector.expand = expand;
   vector.append = append;
   vector.sort = sort;
-  vector.countSorted = countSorted;
+  vector.count_sorted = count_sorted;
 
   return vector;
 }
 
-void print(Vector *vector) {
+void print(Vector_t *vector) {
   printf("[ ");
   for (int i = 0; i < vector->index; i++) {
     printf("%d, ", vector->array[i]);
@@ -98,16 +97,16 @@ void print(Vector *vector) {
 
 int main(void) {
 
-  FILE *file_ptr;
+  FILE *file_p;
 
-  Vector numbers[2] = {makeVector(10), makeVector(10)};
+  Vector_t numbers[2] = {makeVector(10), makeVector(10)};
 
   char ch;
   char buffer[8];
 
-  file_ptr = fopen("/workspaces/advent-of-code-in-c-2024/src/input.txt", "r");
+  file_p = fopen("/workspaces/advent-of-code-in-c-2024/src/input.txt", "r");
 
-  if (file_ptr == NULL) {
+  if (file_p == NULL) {
     printf("File cannot be opened");
     return EXIT_FAILURE;
   }
@@ -116,7 +115,7 @@ int main(void) {
   char numberSide = 0;
 
   while (1) {
-    ch = fgetc(file_ptr);
+    ch = fgetc(file_p);
 
     if (ch == ' ' || ch == '\n' || ch == EOF) {
       if (bufferIndex == 0)
@@ -144,14 +143,11 @@ int main(void) {
     bufferIndex++;
   }
 
-  fclose(file_ptr);
+  fclose(file_p);
 
   for (int i = 0; i < 2; i++) {
     numbers[i].sort(&numbers[i]);
   }
-
-  // print(&left);
-  // print(&right);
 
   int out = 0;
 
@@ -164,7 +160,7 @@ int main(void) {
   out = 0;
   for (int i = 0; i < numbers[0].index; i++) {
     int left_value = numbers[0].array[i];
-    out += left_value * numbers[1].countSorted(&numbers[1], left_value);
+    out += left_value * numbers[1].count_sorted(&numbers[1], left_value);
   }
 
   printf("Part 2: %d\n\n", out);
